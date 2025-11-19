@@ -102,7 +102,7 @@ Once the backend is running, you can view the full interactive documentation (Sw
 ## 📂 Project Structure
 
 ```
-fullstack-assignment/
+nua-assignment/
 ├── backend/                  # Node.js API
 │   ├── controllers/          # Business Logic (Fetch loop, Retry logic)
 │   ├── routes/               # API Route Definitions
