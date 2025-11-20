@@ -9,25 +9,37 @@ A robust, full-stack application built for the 2025 Intern Assignment. This appl
 - **Modular Architecture**: Separation of concerns using Routes and Controllers.
 - **Resilient Data Fetching**: Recursively fetches 1000 users (50 pages) with smart retry logic and rate limiting to handle API constraints.
 - **Bulk Operations**: Optimized MySQL bulk inserts using `INSERT IGNORE` to handle duplicates.
-- **Swagger Documentation**: Interactive API documentation available at `/api-docs`.
+- **Swagger/OpenAPI Documentation**: Interactive API documentation at `/api-docs`.
+- **Environment-Based Configuration**: Secure configuration using `.env` files.
+- **Connection Pooling**: Efficient MySQL connection management with mysql2/promise.
 
 ### Frontend (Vue.js + Vuetify)
 
-- **Modern UI**: Clean, minimalist interface with a "No Data" empty state.
-- **Smart Datatable**: Server-side data rendering with client-side pagination (25 rows/page).
+- **Modern UI**: Clean, minimalist interface with Vuetify Material Design components.
+- **Smart Datatable**: Responsive table with client-side pagination (25 rows/page).
 - **Global Search**: Real-time filtering across Name, Email, and City.
-- **Service Layer**: Centralized API service to decouple UI from HTTP logic.
+- **Inline Editing**: Update user details with pencil icon editor.
+- **Service Layer**: Centralized Axios-based API service.
+- **Empty State Handling**: "No Users Found" with action button.
 
 ## 🛠️ Prerequisites
 
 - **Node.js** (v16+ recommended)
-- **MySQL Server** (Running locally)
+- **MySQL Server** (5.7+ or 8.0+)
+- **npm** or **yarn**
 
 ## 📦 Installation & Setup
 
-### 1. Database Setup
+### 1. Clone & Navigate to Project
 
-Execute the following SQL in your MySQL Workbench or Terminal to create the required schema:
+```bash
+git clone https://github.com/sharandadi/nua-assignment.git
+cd nua-assignment
+```
+
+### 2. Database Setup
+
+Execute the following SQL in your MySQL client:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS user_management;
@@ -41,129 +53,276 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ```
 
-### 2. Backend Setup (The Kitchen)
+### 3. Backend Setup
 
-Navigate to the backend folder and install the required libraries.
+Navigate to the backend folder:
 
 ```bash
 cd backend
 
 # Install Dependencies
-npm install express mysql2 axios cors swagger-jsdoc swagger-ui-express
+npm install
 ```
 
-**Configuration:**
-Open `backend/db.js` and ensure your MySQL password is correct:
+**Configuration - Create `.env` file:**
 
-```javascript
-password: 'YOUR_PASSWORD_HERE' // e.g., 'root'
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=root
+DB_NAME=user_management
+PORT=3000
 ```
 
 **Start Server:**
 
 ```bash
 node server.js
-# Output: Backend running at http://localhost:3000
 ```
 
-### 3. Frontend Setup (The Dining Room)
+**Expected Output:**
+```
+🔧 Checking database 'user_management'...
+✅ Database and Tables checked/created successfully.
+Backend running at http://localhost:3000
+Swagger Docs available at http://localhost:3000/api-docs
+```
 
-Open a new terminal, navigate to the frontend folder, and install the UI libraries.
+### 4. Frontend Setup
+
+Open a new terminal and navigate to frontend:
 
 ```bash
 cd frontend
 
 # Install Dependencies
 npm install
-# (This installs Vue, Vuetify, Axios, and MDI Fonts automatically from package.json)
+
+# Start Development Server
+npm run dev
 ```
 
-**Start UI:**
-
-```bash
-npm run dev
-# Output: Local: http://localhost:5173/
+**Expected Output:**
+```
+Local: http://localhost:5173/
 ```
 
 ## 📚 API Documentation
 
-Once the backend is running, you can view the full interactive documentation (Swagger/OpenAPI) by visiting:
+Once the backend is running, view the interactive API docs:
 
 👉 **http://localhost:3000/api-docs**
 
 ### Key Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/users/fetch` | Fetches 1000 users from randomuser.me and populates DB. |
-| GET | `/api/users` | Retrieves all users from the database. |
-| PUT | `/api/users/:uuid` | Updates a specific user's Name, Email, or City. |
+| Method | Endpoint | Description | Body |
+|--------|----------|-------------|------|
+| POST | `/api/users/fetch` | Fetch 1000 users from randomuser.me and store in DB | None |
+| GET | `/api/users` | Retrieve all users from database | None |
+| PUT | `/api/users/:uuid` | Update user (name, email, city) | `{ "name": "...", "email": "...", "city": "..." }` |
+
+### Example API Calls
+
+**Fetch Users:**
+```bash
+curl -X POST http://localhost:3000/api/users/fetch
+```
+
+**Get All Users:**
+```bash
+curl http://localhost:3000/api/users
+```
+
+**Update User:**
+```bash
+curl -X PUT http://localhost:3000/api/users/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com", "city": "New York"}'
+```
 
 ## 📂 Project Structure
 
 ```
 nua-assignment/
-├── backend/                  # Node.js API
-│   ├── controllers/          # Business Logic (Fetch loop, Retry logic)
-│   ├── routes/               # API Route Definitions
-│   ├── db.js                 # Database Connection Pool
-│   ├── server.js             # Entry point & Config
-│   └── swagger.js            # API Documentation Config
+├── backend/
+│   ├── controllers/
+│   │   └── userController.js         # Business logic
+│   ├── routes/
+│   │   └── userRoutes.js             # API routes with Swagger docs
+│   ├── db.js                         # Database connection pool
+│   ├── server.js                     # Express app & startup
+│   ├── swagger.js                    # OpenAPI/Swagger config
+│   ├── package.json
+│   ├── .env                          # Environment variables
+│   └── .gitignore
 │
-├── frontend/                 # Vue.js Client
+├── frontend/
 │   ├── src/
-│   │   ├── services/         # API Service Layer (Axios wrapper)
-│   │   ├── App.vue           # Main UI Component
-│   │   └── main.js           # Vuetify Setup
-│   └── package.json
+│   │   ├── App.vue                   # Main Vue component
+│   │   ├── main.js                   # Vuetify & app setup
+│   │   └── services/
+│   │       └── userService.js        # Axios API client
+│   ├── public/
+│   │   └── favicon.ico
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── jsconfig.json
+│   ├── README.md
+│   └── .gitignore
 │
-└── README.md                 # Documentation
+├── .gitignore                        # Root gitignore
+├── README.md                         # This file
+└── package-lock.json
 ```
 
 ## 💡 How to Test
 
-1. **Open the Frontend** → http://localhost:5173
-2. **You will see a "No Users Found" screen**
-3. **Click the Fetch Users button**
-4. **Wait for the progress bar to finish** (it fetches 50 pages in background)
-5. **The table will populate automatically**
-6. **Use the Search Box to filter** for specific users
-7. **Click the Pencil Icon to edit** a user, change their city, and save
-8. **Refresh the page** to verify the data persisted in MySQL
+1. **Start Backend**: `node server.js` (from `/backend`)
+2. **Start Frontend**: `npm run dev` (from `/frontend`)
+3. **Open Browser**: http://localhost:5173
+4. **Initial State**: "No Users Found" message displayed
+5. **Fetch Data**: Click "Fetch Users" button
+6. **Wait**: Progress bar shows fetching status (50 pages, ~1000 users)
+7. **View Data**: Table populates with users
+8. **Search**: Use search box to filter by name, email, or city
+9. **Edit**: Click pencil icon to edit user details
+10. **Save**: Changes persist in MySQL database
+11. **Refresh**: Verify data persists after page refresh
 
 ## 🔧 Troubleshooting
 
 ### MySQL Connection Error
-- Ensure MySQL is running: `mysql -u root -p`
-- Check the password in `backend/db.js` matches your MySQL setup
-- Verify the database exists: `CREATE DATABASE IF NOT EXISTS user_management;`
+```
+Error: connect ECONNREFUSED 127.0.0.1:3306
+```
+**Solution:**
+- Start MySQL: `brew services start mysql` (macOS) or check your MySQL installation
+- Verify credentials in `.env` file
+- Test connection: `mysql -u root -p`
 
-### Port Already in Use
-- Backend (3000): `lsof -i :3000` and kill the process
-- Frontend (5173): `lsof -i :5173` and kill the process
+### Port 3000 Already in Use
+```bash
+# Find and kill process on port 3000
+lsof -i :3000
+kill -9 <PID>
+```
+
+### Port 5173 Already in Use
+```bash
+# Find and kill process on port 5173
+lsof -i :5173
+kill -9 <PID>
+```
+
+### "Cannot find module" Error
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
 
 ### No Users Fetching
 - Check backend console for errors
-- Verify API endpoint: `curl http://localhost:3000/api/users`
-- Ensure internet connection (needs to reach randomuser.me API)
+- Verify internet connection (requires randomuser.me API access)
+- Test API: `curl http://localhost:3000/api/users`
+- Check browser console for frontend errors
+
+### Database Not Found
+- Verify MySQL is running
+- Create database: `CREATE DATABASE user_management;`
+- Restart backend server
+
+## 🚀 Production Deployment
+
+### Backend Deployment (Heroku Example)
+
+```bash
+# Install Heroku CLI and login
+heroku login
+
+# Create new Heroku app
+heroku create your-app-name
+
+# Set environment variables
+heroku config:set DB_HOST=your-db-host
+heroku config:set DB_USER=your-db-user
+heroku config:set DB_PASSWORD=your-db-password
+
+# Deploy
+git push heroku main
+```
+
+### Frontend Deployment (Vercel Example)
+
+```bash
+# Build production bundle
+npm run build
+
+# Deploy to Vercel (requires Vercel CLI)
+vercel
+```
+
+Or connect your GitHub repo to Vercel for automatic deployments.
+
+## 📚 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Backend** | Node.js + Express | REST API server |
+| **Database** | MySQL | Data persistence |
+| **Frontend** | Vue 3 | UI framework |
+| **UI Library** | Vuetify 3 | Material Design components |
+| **HTTP Client** | Axios | API communication |
+| **API Docs** | Swagger/OpenAPI | Interactive documentation |
+| **Build Tool** | Vite | Fast frontend bundling |
 
 ## 📝 Environment Variables
 
-Create a `.env` file in the backend folder (optional):
+### Backend `.env` Format
 
 ```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=user_management
-PORT=3000
+DB_HOST=localhost              # MySQL host
+DB_USER=root                   # MySQL username
+DB_PASSWORD=root               # MySQL password (KEEP SECURE!)
+DB_NAME=user_management        # Database name
+PORT=3000                      # Express server port
 ```
 
-## 🚀 Deployment Ready
+## ✨ Key Implementation Details
 
-This project is ready to be deployed to:
-- **Backend**: Heroku, AWS, DigitalOcean, Railway
-- **Frontend**: Vercel, Netlify, GitHub Pages
+### Data Fetching Strategy
+- **Recursive Retry**: `fetchPageWithRetry()` recursively retries failed API calls
+- **Rate Limiting**: 300ms delay between requests to respect API limits
+- **Bulk Insert**: Uses `INSERT IGNORE` to skip duplicate UUIDs
+- **Error Handling**: Continues fetching even if individual pages fail
+
+### Database Optimization
+- **Connection Pooling**: 10 concurrent connections with queue management
+- **Prepared Statements**: Prevents SQL injection attacks
+- **Efficient Queries**: Indexed UUID primary key for fast lookups
+
+### Frontend Architecture
+- **Service Layer**: `userService.js` decouples API logic from UI
+- **Reactive Data**: Vue's reactivity system updates UI automatically
+- **Error Boundaries**: Try-catch blocks prevent UI crashes
+
+## 🔐 Security Considerations
+
+- ✅ Environment variables for sensitive data
+- ✅ CORS enabled for frontend-backend communication
+- ✅ SQL injection prevention via parameterized queries
+- ✅ `.env` file added to `.gitignore` (never commit secrets)
+
+## 📄 Assignment Requirements
+
+✅ Fetch 1000 users from randomuser.me API
+✅ Store in MySQL database with UUID, name, email, city
+✅ REST API endpoints (GET, POST, PUT)
+✅ Modern, responsive frontend with search & pagination
+✅ Edit functionality for user records
+✅ Swagger API documentation
+✅ Error handling & retry logic
+✅ Environment-based configuration
 
 ## 📄 License
 
@@ -171,4 +330,6 @@ This project is part of the 2025 Intern Assignment.
 
 ---
 
-**Built with ❤️ using Node.js, Vue.js, MySQL, and Vuetify**
+**Built with ❤️ using Node.js, Vue.js, MySQL, Express, and Vuetify**
+
+For questions or issues, please contact the development team.
